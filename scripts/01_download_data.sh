@@ -50,11 +50,24 @@ download_reads() {
 
 # Retrieve the swine reference file from NCBI
 download_swine_ref() {
-  mkdir -p ref
-  datasets download genome accession GCF_000003025.6 --filename swine_ref.zip
-  unzip swine_ref.zip -d ref/
-  mv ref/ncbi_dataset/data/GCF_000003025.6/GCF_000003025.6_Sscrofa11.1_genomic.fna data/ref.fna
-  rm -rf ref
+  local target=data/ref.fna
+  if [ ! -f "swine_ref.zip" ]; then
+    datasets download genome accession GCF_000003025.6 --filename swine_ref.zip
+    unzip swine_ref.zip -d ref/
+    mv ref/ncbi_dataset/data/GCF_000003025.6/GCF_000003025.6_Sscrofa11.1_genomic.fna ${target}
+    rm -rf ref
+  else
+    echo "Reference genome already downloaded"
+  fi
+}
+
+download_genomes() {
+  local target=data/genomes.fa
+  if [ ! -f "${target}" ]; then
+    efetch -db nuccore -input data/refseq.accessions.txt -format fasta >data/genomes.fa
+  else
+    echo "Refseq genomes already downloaded"
+  fi
 }
 
 # Run to download sequencing reads and the reference file
@@ -64,4 +77,5 @@ download_data() {
   extract_accessions
   download_reads
   download_swine_ref
+  download_genomes
 }
