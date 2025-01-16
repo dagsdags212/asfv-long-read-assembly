@@ -1,0 +1,14 @@
+data/
+
+# FASTQ files
+*.fastq
+*.fastq.gz
+
+# FASTA files
+*.fasta*
+*.fna*
+
+# Alignment files
+*.sam*
+*.bam*
+*.cram*
