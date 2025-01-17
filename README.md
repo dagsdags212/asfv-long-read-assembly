@@ -37,7 +37,7 @@ Create environment using `micromamba` and activate:
 micromamba create -f env.yml
 ```
 
-### Assembly Pipeline
+### Code Organization
 
 All steps for the assembly pipeline are organized as bash functions under the `scripts` directory. A short description of each bash script is provided below:
 
@@ -47,3 +47,50 @@ All steps for the assembly pipeline are organized as bash functions under the `s
 - `02_trim_reads.sh`: detects and trims adapters from long reads
 - `03_map_and_filter.sh`: aligns the trimmed reads to the reference genome and filter for host read contaminants
 - `04_assemble.sh`: perform _de novo_ assembly on the unmapped reads converted into FASTQ format
+- `05_call_consensus.sh`: generate a consensus sequence from assembled contigs and filtered reads
+
+### Running the Pipeline
+
+Clone the repository in your local environment and move into it:
+```bash
+git clone https://github.com/dagsdags212/asfv-long-read-assembly.git
+cd asfv-long-read-assembly
+```
+
+Then activate the freshly installed conda environment:
+```bash
+micromamba activate asfv-assembly
+```
+
+The entry point for running the analysis is the `00_run_complete_pipeline.sh` script. Make sure that is executable:
+```bash
+chmod +x scripts/00_run_complete_pipeline.sh
+```
+
+Invoked the mentioned script to run the entire pipeline:
+```bash
+./scripts/00_run_complete_pipeline.sh
+```
+
+By default, this will fetch all the sequencing reads associated with the `PRJNA` accession provided in `globals.sh`. If you want to process a different set of reads, store all your FASTQ files within the `data/reads/raw` directory and comment out the `download_reads` function provided in the `01_download_data.sh` script.
+```bash
+download_data() {
+  init
+  fetch_runinfo
+  extract_accessions
+  # download_reads
+  download_swine_ref
+  download_assembly
+  download_genomes
+}
+```
+
+## Results
+
+Running `seqkit stats` on the flye assembly (`assembly.fasta`), medaka consensus (`consensus.fasta`), and the reference assembly (`ON963982.1.fa`) would produce the following output:
+```md
+file                           format  type  num_seqs  sum_len  min_len   avg_len  max_len
+data/genomes/ON963982.1.fa     FASTA   DNA          1  192,377  192,377   192,377  192,377
+output/flye/assembly.fasta     FASTA   DNA          3  195,154    4,863  65,051.3  162,494
+output/medaka/consensus.fasta  FASTA   DNA          3  195,133    4,844  65,044.3  162,490
+```
