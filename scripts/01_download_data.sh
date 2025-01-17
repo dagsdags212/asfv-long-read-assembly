@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 DATADIR=data
+GENOMESDIR=${DATADIR}/genomes
 READSDIR=${DATADIR}/reads
 RAW_READS=${READSDIR}/raw
 TRIMMED_READS=${READSDIR}/trimmed
@@ -50,9 +51,10 @@ download_reads() {
 
 # Retrieve the swine reference file from NCBI
 download_swine_ref() {
-  local target=data/ref.fna
-  if [ ! -f "swine_ref.zip" ]; then
-    datasets download genome accession GCF_000003025.6 --filename swine_ref.zip
+  local target=data/genomes/swine_ref.fna
+  if [ ! -f "${target}" ]; then
+    echo "Downloading swine reference genome (${GCF})"
+    datasets download genome accession ${GCF} --filename swine_ref.zip
     unzip swine_ref.zip -d ref/
     mv ref/ncbi_dataset/data/GCF_000003025.6/GCF_000003025.6_Sscrofa11.1_genomic.fna ${target}
     rm -rf ref
@@ -61,10 +63,19 @@ download_swine_ref() {
   fi
 }
 
+download_assembly() {
+  echo "Downloading ASFV assembly (${ASM})"
+  local target=data/genomes/${ASM}.fa
+  efetch -db nuccore -id ${ASM} -format fasta >${target}
+}
+
 download_genomes() {
-  local target=data/genomes.fa
+  local target=data/genomes/genomes.fa
   if [ ! -f "${target}" ]; then
-    efetch -db nuccore -input data/refseq.accessions.txt -format fasta >data/genomes.fa
+    echo "Fetching RefSeq genomes"
+    efetch -db nuccore -input data/refseq.accessions.txt -format fasta >${target}
+    # Append assembly
+    efetch -db nuccore -id ${ASM} -format fasta >>${target}
   else
     echo "Refseq genomes already downloaded"
   fi
@@ -75,7 +86,8 @@ download_data() {
   init
   fetch_runinfo
   extract_accessions
-  download_reads
+  # download_reads
   download_swine_ref
+  download_assembly
   download_genomes
 }
