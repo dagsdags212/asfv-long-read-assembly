@@ -9,6 +9,9 @@ PRJNA=PRJNA857442
 # Reference genome accession
 ASM=ON963982.1
 
+# Swine reference accession
+GCF=GCF_000003025.6
+
 # Downloaded genome filepath
 SWINE_REF=${ROOT}/data/genomes/swine_ref.fna
 

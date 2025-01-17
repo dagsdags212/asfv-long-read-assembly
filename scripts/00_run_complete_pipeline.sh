@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ROOT=$(dirname $(realpath "$0"))
+ROOT=$(dirname $(dirname $(realpath "$0")))
 
 # print commands and exit on error
 set -eu
@@ -20,17 +20,17 @@ source ${ROOT}/scripts/03_map_and_filter.sh
 # Run de novo assembler
 source ${ROOT}/scripts/04_assemble.sh
 
+# Generate consensus sequence
+source ${ROOT}/scripts/05_call_consensus.sh
+
 # Run the entire pipeline
 run_pipeline() {
   download_data
   trim_adapters
-  index_ref
-  run_minimap
-  sam2bam
-  concat_bam_files
-  filter_aligned_reads
-  bam2fastq
+  map_and_filter
   run_flye_assembler
+  run_medaka
 }
 
-run_flye_assembler
+# Run the entire pipeline
+run_pipeline
