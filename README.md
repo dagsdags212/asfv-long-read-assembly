@@ -87,6 +87,8 @@ download_data() {
 
 ## Results
 
+### Assembly Statistics
+
 Running `seqkit stats` on the flye assembly (`assembly.fasta`), medaka consensus (`consensus.fasta`), and the reference assembly (`ON963982.1.fa`) would produce the following output:
 ```md
 file                           format  type  num_seqs  sum_len  min_len   avg_len  max_len
@@ -94,3 +96,10 @@ data/genomes/ON963982.1.fa     FASTA   DNA          1  192,377  192,377   192,37
 output/flye/assembly.fasta     FASTA   DNA          3  195,154    4,863  65,051.3  162,494
 output/medaka/consensus.fasta  FASTA   DNA          3  195,133    4,844  65,044.3  162,490
 ```
+
+### Visualization
+
+Post-processed reads mapped back to the published assembly (ON963982.1):
+![](./assets/unmapped_reads_against_published_assembly.png)
+
+
