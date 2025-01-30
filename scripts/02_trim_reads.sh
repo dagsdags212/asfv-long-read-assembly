@@ -30,8 +30,14 @@ run_porechop() {
   porechop -i ${RAW_READS}/all_reads.raw.fastq.gz --discard_middle -v 2 --format fastq.gz >${target}
 }
 
+run_chopper() {
+  local target=${TRIMMED_READS}/all_reads.filtered.fastq.gz
+  chopper -i ${TRIMMED_READS}/all_reads.trimmed.fastq.gz -q 10 -l 500 >${target}
+}
+
 trim_adapters() {
   create_reads_dir
   concat_raw_reads
   run_porechop
+  run_chopper
 }
