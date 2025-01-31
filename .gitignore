@@ -2,6 +2,7 @@ data/
 metadata/
 output/
 refs/
+input/
 
 *.zip
 
