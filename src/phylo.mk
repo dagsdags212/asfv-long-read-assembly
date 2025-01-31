@@ -29,6 +29,8 @@ usage:
 	@echo "  tree     generate a phylogenetic tree from an MSA"
 	@echo ""
 
+run: align tree
+
 ${FA}: ${ASM}
 	cat $(shell find refs -name "*.fa") > ${FA}
 	cat ${ASM} >> ${FA}
@@ -44,7 +46,8 @@ ${TREE}: ${ALN}
 	mkdir -p $(dir $@)
 
 	# Run bootstrap inference.
-	iqtree -s ${ALN} -m ${MODEL} -B 1000 -nt ${THREADS} -pre $(basename $<)
+	iqtree -s ${ALN} -m ${MODEL} -B --nmax 1000 \
+		-nt ${THREADS} -s $(dir $@) -pre $(basename $<)
 
 tree: ${TREE}
 	ls -lh $(dir $<)
