@@ -9,6 +9,9 @@ CONTIGS ?= output/flye/assembly.fasta
 # Path to target consensus file.
 CONSENSUS ?= output/medaka/consensus.fasta
 
+# Path to draft assembly.
+ASM ?= output/06_draft_assembly.fa
+
 # Number of CPUs.
 THREADS ?= 10
 
@@ -45,14 +48,21 @@ ${CONSENSUS}: ${CONTIGS} ${READS}
 	# Link consensus file to root of output directory.
 	ln -s $(abspath $@) $(abspath $(dir $@))/07_consensus.fa
 
-assemble: ${CONTIGS}
-	ls -lh $<
+${ASM}: ${CONTIGS}
+	seqkit seq --min-length 150000 -g $< > $@
+
+
+assemble: ${CONTIGS} ${ASM}
+	ls -lh $^
 
 consensus: ${CONSENSUS}
 	ls -lh $<
 
 stats:
 	seqkit stats ${CONTIGS} ${CONSENSUS}
+
+consensus!:
+	rm -rf $(dir ${CONSENSUS})
 
 run!:
 	rm -rf $(dir ${CONTIGS})
