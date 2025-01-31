@@ -1,4 +1,9 @@
 data/
+metadata/
+output/
+refs/
+
+*.zip
 
 # FASTQ files
 *.fastq
