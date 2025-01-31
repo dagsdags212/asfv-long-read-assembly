@@ -32,4 +32,9 @@ map:
 	@echo "==========================="
 	@echo "==  Host Read Depletion  =="
 	@echo "==========================="
-	make -f src/map.mk run
+
+assemble:
+	@echo "=========================="
+	@echo "==  Long-read Assembly  =="
+	@echo "=========================="
+	make -f src/assemble.mk run
