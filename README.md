@@ -39,15 +39,22 @@ micromamba create -f env.yml
 
 ### Code Organization
 
-All steps for the assembly pipeline are organized as bash functions under the `scripts` directory. A short description of each bash script is provided below:
+The commands to carry out each step in the pipeline are organized as Makefiles within the `src` directory:
 
-- `globals.sh`: contains all the global variables used in the pipeline
-- `00_run_complete_pipeline.sh`: an executable for running the complete assembly pipeline
-- `01_download_data.sh`: downloads the sequencing reads from the SRA and the reference genome from NCBI
-- `02_trim_reads.sh`: detects and trims adapters from long reads
-- `03_map_and_filter.sh`: aligns the trimmed reads to the reference genome and filter for host read contaminants
-- `04_assemble.sh`: perform _de novo_ assembly on the unmapped reads converted into FASTQ format
-- `05_call_consensus.sh`: generate a consensus sequence from assembled contigs and filtered reads
+- `fetck.mk`: retrieve all read/sequence data associated with the study.
+- `qc.mk`: perform adapter trimming and quality filtering on raw reads.
+- `map.mk`: carry out host-read decontamination and convert unmapped reads into a FASTQ file.
+- `assemble.mk`: generate draft assembly and call consensus sequence.
+- `phylo.mk`: align draft assembly against all other RefSeq genomes and bootstrap a phylogenetic tree.
+
+Invoke the `usage` command for list down all targets for a Makefile. Alternatively, run the Makefile without specifying a target:
+```bash
+# Equivalent to the command above.
+make -f src/fetch.mk
+
+# Print targets.
+make -f src/fetch.mk usage
+```
 
 ### Running the Pipeline
 
@@ -57,49 +64,96 @@ git clone https://github.com/dagsdags212/asfv-long-read-assembly.git
 cd asfv-long-read-assembly
 ```
 
-Then activate the freshly installed conda environment:
+Create conda environment from the `env.yml` file:
+```bash
+micromamba create -f env.yml
+```
+
+Activate conda environment:
 ```bash
 micromamba activate asfv-assembly
 ```
 
-The entry point for running the analysis is the `00_run_complete_pipeline.sh` script. Make sure that is executable:
+Run `make` at the root directory to run the complete pipeline:
 ```bash
-chmod +x scripts/00_run_complete_pipeline.sh
+make
 ```
 
-Invoked the mentioned script to run the entire pipeline:
+Or, run separate steps sequentially:
 ```bash
-./scripts/00_run_complete_pipeline.sh
-```
+# Download reads from SRA and sequences from GenBank.
+make -f src/fetch.mk run
 
-By default, this will fetch all the sequencing reads associated with the `PRJNA` accession provided in `globals.sh`. If you want to process a different set of reads, store all your FASTQ files within the `data/reads/raw` directory and comment out the `download_reads` function provided in the `01_download_data.sh` script.
-```bash
-download_data() {
-  init
-  fetch_runinfo
-  extract_accessions
-  # download_reads
-  download_swine_ref
-  download_assembly
-  download_genomes
-}
+# Trim and filter raw reads.
+make -f src/qc.mk run
+
+# Filter out host-read contaminants.
+make -f src/map.mk run
+
+# Assembly draft genome and polish.
+make -f src/assemble.mk run
+
+# Align draft assembly against RefSeq sequences and generate tree.
+make -f src/phylo.mk run
 ```
 
 ## Results
 
-### Assembly Statistics
+### Raw Reads
 
-Running `seqkit stats` on the flye assembly (`assembly.fasta`), medaka consensus (`consensus.fasta`), and the reference assembly (`ON963982.1.fa`) would produce the following output:
-```md
-file                           format  type  num_seqs  sum_len  min_len   avg_len  max_len
-data/genomes/ON963982.1.fa     FASTA   DNA          1  192,377  192,377   192,377  192,377
-output/flye/assembly.fasta     FASTA   DNA          3  195,154    4,863  65,051.3  162,494
-output/medaka/consensus.fasta  FASTA   DNA          3  195,133    4,844  65,044.3  162,490
+|file                   |format|type|num_seqs|sum_len |min_len|avg_len|max_len|
+|:----------------------|:-----|:---|:-------|:-------|:------|:------|:------|
+|reads/SRR20073667.fastq|FASTQ |DNA |1422    |5785918 |94     |4068.9 |29964  |
+|reads/SRR31340505.fastq|FASTQ |DNA |12000   |22587933|63     |1882.3 |17505  |
+|reads/SRR31340506.fastq|FASTQ |DNA |12000   |60925466|764    |5077.1 |20708  |
+|reads/SRR31340507.fastq|FASTQ |DNA |12000   |51040598|590    |4253.4 |90818  |
+|reads/SRR31340508.fastq|FASTQ |DNA |12000   |58456021|644    |4871.3 |14897  |
+|reads/SRR31340509.fastq|FASTQ |DNA |12000   |55698946|643    |4641.6 |15042  |
+|reads/SRR31340510.fastq|FASTQ |DNA |12000   |50278720|689    |4189.9 |15730  |
+|reads/SRR31340511.fastq|FASTQ |DNA |12000   |45989520|777    |3832.5 |14665  |
+|reads/SRR31340512.fastq|FASTQ |DNA |12000   |60241250|675    |5020.1 |16649  |
+|reads/SRR31340513.fastq|FASTQ |DNA |12000   |56711095|639    |4725.9 |16324  |
+
+### Quality Control
+
+|file                                      |format|type|num_seqs|sum_len  |min_len|avg_len|max_len|
+|:-----------------------------------------|:-----|:---|:-------|:--------|:------|:------|:------|
+|input/all_reads.fastq                     |FASTQ |DNA |109422  |467715467|63     |4274.4 |90818  |
+|output/01_all_reads.trimmed.fastq         |FASTQ |DNA |108815  |461626859|7      |4242.3 |90818  |
+|output/02_all_reads.trimmed.filtered.fastq|FASTQ |DNA |101524  |459347886|501    |4524.5 |90818  |
+
+### Filtering
+
+Results of running `samtools flagstat`:
 ```
-
-### Visualization
+101524 + 0 in total (QC-passed reads + QC-failed reads)
+101524 + 0 primary
+0 + 0 secondary
+0 + 0 supplementary
+0 + 0 duplicates
+0 + 0 primary duplicates
+0 + 0 mapped (0.00% : N/A)
+0 + 0 primary mapped (0.00% : N/A)
+0 + 0 paired in sequencing
+0 + 0 read1
+0 + 0 read2
+0 + 0 properly paired (N/A : N/A)
+0 + 0 with itself and mate mapped
+0 + 0 singletons (N/A : N/A)
+0 + 0 with mate mapped to a different chr
+0 + 0 with mate mapped to a different chr (mapQ>=5)
+```
 
 Post-processed reads mapped back to the published assembly (ON963982.1):
 ![](./assets/unmapped_reads_against_published_assembly.png)
 
+### Assembly
 
+|file                         |format|type|num_seqs|sum_len|min_len|avg_len|max_len|
+|:----------------------------|:-----|:---|:-------|:------|:------|:------|:------|
+|output/flye/assembly.fasta   |FASTA |DNA |104     |490089 |1760   |4712.4 |189394 |
+|output/medaka/consensus.fasta|FASTA |DNA |91      |455711 |1769   |5007.8 |189419 |
+
+### Tree Inference
+
+![Assembly is highlighted in red.](./assets/asfv_tree.svg)
