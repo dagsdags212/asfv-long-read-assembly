@@ -150,7 +150,7 @@ refs: ${REFSEQ}
 	datasets download genome accession ${GCF} --filename swine.zip
 	unzip swine.zip -d swine
 	mv swine/ncbi_dataset/data/**/*.fna refs
-	rm -rf swine
+	rm -rf swine swine.zip
 
 # Delete runinfo.
 runinfo!:

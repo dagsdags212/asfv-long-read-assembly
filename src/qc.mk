@@ -1,11 +1,13 @@
+BASENAME ?= all_reads
+
 # Path to concatenated fastq files.
-READS = input/all_reads.fastq
+READS = input/${BASENAME}.fastq
 
 # Path to trimmed reads.
-TRIMMED_READS = output/01_all_reads.trimmed.fastq
+TRIMMED_READS = output/01_${BASENAME}.trimmed.fastq
 
 # Path to filterd reads.
-FILTERED_READS = output/02_all_reads.trimmed.filtered.fastq
+FILTERED_READS = output/02_${BASENAME}.trimmed.filtered.fastq
 
 
 usage:
@@ -22,8 +24,9 @@ usage:
 run: trim filter
 
 ${READS}:
+	rm -rf $(dir $@)
 	mkdir -p $(dir $@)
-	cat reads/*.fastq > $@
+	cat reads/*.fastq > ${READS}
 
 # Perform adapter trimming.
 ${TRIMMED_READS}: ${READS}

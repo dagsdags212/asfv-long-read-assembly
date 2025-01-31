@@ -18,9 +18,12 @@ usage:
 	@echo ""
 	@echo "Commands:"
 	@echo ""
-	@echo "  run          invoke sequence assembly"
+	@echo "  run          generate assembly and consensus"
+	@echo "  assemble     invoke sequence assembly"
 	@echo "  consensus    polish draft assembly"
 	@echo ""
+
+run: assemble consensus
 
 ${CONTIGS}: ${READS}
 	# Create output directory for flye.
@@ -30,7 +33,7 @@ ${CONTIGS}: ${READS}
 	flye --nano-hq $< --genome-size 0.2m --meta --threads ${THREADS} --iterations 5 -o $(dir $@)
 	
 	# Link contig file to root of output directory.
-	ln -s ${CONTIGS} output/06_assembly.fa
+	ln -s $(abspath $@) $(abspath $(dir $@))/06_assembly.fa
 
 ${CONSENSUS}: ${CONTIGS} ${READS}
 	# Create output directory for medaka.
@@ -40,10 +43,13 @@ ${CONSENSUS}: ${CONTIGS} ${READS}
 	medaka_consensus -i ${READS} -d ${CONTIGS} -o $(dir $@) -t ${THREADS}
 
 	# Link consensus file to root of output directory.
-	ln -s $@ output/07_consensus.fa
+	ln -s $(abspath $@) $(abspath $(dir $@))/07_consensus.fa
 
-run: ${CONTIGS} ${CONSENSUS}
-	ls -lh ${CONTIGS} ${CONSENSUS}
+assemble: ${CONTIGS}
+	ls -lh $<
+
+consensus: ${CONSENSUS}
+	ls -lh $<
 
 stats:
 	seqkit stats ${CONTIGS} ${CONSENSUS}

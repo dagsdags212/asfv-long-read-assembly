@@ -1,5 +1,7 @@
+BASENAME = all_reads
+
 # Path to filtered reads.
-FILTERED_READS = output/02_all_reads.trimmed.filtered.fastq
+FILTERED_READS = output/02_${BASENAME}.trimmed.filtered.fastq
 
 # Path to swine reference genome.
 SWINE_REF = refs/GCF_000003025.6_Sscrofa11.1_genomic.fna
@@ -12,6 +14,7 @@ UNMAPPED_SAM = output/04_unmapped.sam
 
 # Path to target unmapped FASTQ file.
 UNMAPPED_FQ = output/05_unmapped.fq
+
 
 usage:
 	@echo ""
@@ -54,6 +57,9 @@ ${UNMAPPED_FQ}: ${UNMAPPED_SAM}
 filter: ${UNMAPPED_FQ}
 	ls -lh $<
 
+stats: ${UNMAPPED_SAM}
+	samtools flagstats $<
+
 filter!:
 	rm -f ${UNMAPPED_FQ}
 
@@ -62,4 +68,4 @@ clean:
 	rm -f ${UNMAPPED_SAM}
 	rm -f ${UNMAPPED_FQ}
 
-.PHONY: filter filter! run
+.PHONY: filter filter! stats run
