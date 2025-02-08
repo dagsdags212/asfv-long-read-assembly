@@ -161,6 +161,8 @@ make -f src/phylo.mk run
 |reads/SRR31340512.fastq|FASTQ |DNA |12000   |60241250|675    |5020.1 |16649  |
 |reads/SRR31340513.fastq|FASTQ |DNA |12000   |56711095|639    |4725.9 |16324  |
 
+![](assets/fastqc_adapter_content_plot.svg) ![](assets/fastqc_sequence_duplication_levels_plot.svg)
+
 ### Quality Control
 
 |file                                      |format|type|num_seqs|sum_len  |min_len|avg_len|max_len|
